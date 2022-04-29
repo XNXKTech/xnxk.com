@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="28px" height="89px" viewBox="0 0 28 89" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>导视图标-公司介绍</title>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="虚拟星空--light" transform="translate(-116.000000, -1147.000000)">
+            <g id="编组-6" transform="translate(116.040435, 1145.000000)">
+                <g id="导视图标-公司介绍" transform="translate(0.000000, 2.000000)">
+                    <rect id="矩形" stroke="#1989FA" stroke-width="2" x="1" y="1" width="14" height="14"></rect>
+                    <rect id="矩形备份-5" stroke="#1989FA" stroke-width="2" x="12" y="16" width="14" height="72"></rect>
+                    <rect id="矩形" fill="#1989FA" x="6" y="6" width="4" height="4"></rect>
+                    <rect id="矩形备份-8" fill="#1989FA" x="17" y="21" width="4" height="4"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

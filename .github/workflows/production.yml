@@ -1,0 +1,179 @@
+name: Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  cloudbase:
+    name: Deploy to Tencent Cloudbase
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    environment:
+      name: production
+      url: https://xnxk.net
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        node: [ '16' ]
+
+    name: Deploy static files to COS
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Setup Node ${{ matrix.node }}
+        uses: actions/setup-node@v2.5.1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v2.1.7
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - run: rm -f .yarnclean
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+          HUSKY_SKIP_INSTALL: true
+
+      - name: Cache dist
+        id: cache-dist
+        uses: actions/cache@v2.1.7
+        with:
+          path: ./dist
+          key: BUILD-ID-${{ github.run_id }}
+
+      - name: Build
+        if: steps.cache-dist.outputs.cache-hit != 'true'
+        run: yarn build
+
+      - name: Deploy static to Tencent CloudBase
+        id: deployStatic
+        uses: TencentCloudBase/cloudbase-action@v2
+        with:
+          secretId: ${{ secrets.TCB_SECRET_ID }}
+          secretKey: ${{ secrets.TCB_SECRET_KEY }}
+          envId: ${{ secrets.ENV_ID }}
+
+      - name: Upate Static file
+        uses: saltbo/uptoc@v1.4.3
+        with:
+          driver: cos
+          region: ap-chengdu
+          bucket: xnxk-frontend-assets-production-${{ secrets.TENCENTCLOUD_APP_ID }}
+          exclude: .git,.github,.gitignore,README.md,test,images,logo,svg,video,*.html
+          dist: dist/static
+          saveroot: ./static
+        env:
+          UPTOC_UPLOADER_AK: ${{ secrets.TENCENTCLOUD_COS_SECRET_ID }}
+          UPTOC_UPLOADER_SK: ${{ secrets.TENCENTCLOUD_COS_SECRET_KEY }}
+
+      - name: Deploy static to Tencent CloudBase
+        id: deployStatic
+        uses: TencentCloudBase/cloudbase-action@v2
+        with:
+          secretId: ${{ secrets.TENCENTCLOUD_CLOUDBASE_SECRET_ID }}
+          secretKey: ${{ secrets.TENCENTCLOUD_CLOUDBASE_SECRET_KEY }}
+          envId: ${{ secrets.ENV_ID }}
+  cdn:
+    runs-on: ubuntu-latest
+    needs:
+      - cloudbase
+
+    name: Refresh CDN
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Setup Serverless
+        uses: teakowa/setup-serverless@v2
+        with:
+          provider: tencent
+        env:
+          TENCENT_APPID: ${{ secrets.TENCENTCLOUD_APP_ID }}
+          TENCENT_SECRET_ID: ${{ secrets.TENCENTCLOUD_SLS_SECRET_ID }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENTCLOUD_SLS_SECRET_KEY}}
+          SERVERLESS_PLATFORM_VENDOR: tencent
+
+      - name: Refresh CDN
+        run: sls deploy
+
+      - name: Slack Notification
+      - name: Lark Notification
+        run: |
+          curl '${{ secrets.SERVICE_UPDATES_ECHO_LARK_BOT_HOOK }}' \
+             -H 'Content-Type: application/json' \
+              -d '
+              {
+                "msg_type": "interactive",
+                "card": {
+                  "config": {
+                    "wide_screen_mode": true
+                },
+                "header": {
+                  "template": "green",
+                  "title": {
+                    "content": "✅  Production Deployment for ${{ github.repository }} ready!",
+                    "tag": "plain_text"
+                  }
+                },
+                "elements": [
+                  {
+                    "fields": [
+                      {
+                        "is_short": true,
+                        "text": {
+                          "content": "**👤  提交者：**\n${{ github.actor }}",
+                          "tag": "lark_md"
+                        }
+                      },
+                      {
+                        "is_short": true,
+                        "text": {
+                          "content": "**🚧  Stage：**\n[production](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})",
+                          "tag": "lark_md"
+                        }
+                      }
+                    ],
+                    "tag": "div"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "is_short": true,
+                        "text": {
+                          "content": "**🔨  Latest commit：**\n[${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})",
+                          "tag": "lark_md"
+                        }
+                      },
+                      {
+                        "is_short": true,
+                        "text": {
+                          "content": "**🔍  Latest deploy log：**\n[${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                          "tag": "lark_md"
+                        }
+                      }
+                    ],
+                    "tag": "div"
+                  },
+                  {
+                    "tag": "hr"
+                  },
+                  {
+                    "tag": "markdown",
+                    "content": "**服务开始滚动更新，预计几分钟后生效。**\n\n本次变更内容如下：\n\n${{ fromJson(steps.get_release_notes.outputs.data).body }}"
+                  }
+                ]
+               }
+              }'

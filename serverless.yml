@@ -1,0 +1,17 @@
+app: xnxk-website
+stage: prod
+component: cdn
+name: cdn
+
+inputs:
+  area: mainland
+  domain: xnxk.net
+  origin:
+    origins:
+      - xnxk-6g7yy2mi9f17f856-1308277749.tcloudbaseapp.com
+    originType: domain
+    originPullProtocol: http
+  onlyRefresh: true
+  refreshCdn:
+    urls:
+      - https://xnxk.net/

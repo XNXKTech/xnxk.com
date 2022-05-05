@@ -64,34 +64,20 @@ jobs:
           secretKey: ${{ secrets.TCB_SECRET_KEY }}
           envId: ${{ secrets.ENV_ID }}
 
-  cdn:
-    runs-on: ubuntu-latest
-    needs:
-      - cloudbase
-
-    name: Refresh CDN
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2.4.0
-
-      - name: Setup Serverless
-        uses: teakowa/setup-serverless@v2
+      - uses: octokit/request-action@v2.x
+        id: get_release_notes
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
-          provider: tencent
-        env:
-          TENCENT_APPID: ${{ secrets.TENCENTCLOUD_APP_ID }}
-          TENCENT_SECRET_ID: ${{ secrets.TENCENTCLOUD_SLS_SECRET_ID }}
-          TENCENT_SECRET_KEY: ${{ secrets.TENCENTCLOUD_SLS_SECRET_KEY}}
-          SERVERLESS_PLATFORM_VENDOR: tencent
-
-      - name: Refresh CDN
-        run: sls deploy
+          route: GET /repos/{owner}/{repo}/releases/tags/{tag}
+          owner: ${{ inputs.owner }}
+          repo: ${{ inputs.repo }}
+          tag: ${{ inputs.version }}
 
       - name: Lark Notification
         run: |
           curl '${{ secrets.SERVICE_UPDATES_ECHO_LARK_BOT_HOOK }}' \
              -H 'Content-Type: application/json' \
-              -d '
+             -d '
               {
                 "msg_type": "interactive",
                 "card": {
@@ -154,3 +140,27 @@ jobs:
                 ]
                }
               }'
+
+
+  cdn:
+    runs-on: ubuntu-latest
+    needs:
+      - cloudbase
+
+    name: Refresh CDN
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Setup Serverless
+        uses: teakowa/setup-serverless@v2
+        with:
+          provider: tencent
+        env:
+          TENCENT_APPID: ${{ secrets.TENCENTCLOUD_APP_ID }}
+          TENCENT_SECRET_ID: ${{ secrets.TENCENTCLOUD_SLS_SECRET_ID }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENTCLOUD_SLS_SECRET_KEY}}
+          SERVERLESS_PLATFORM_VENDOR: tencent
+
+      - name: Refresh CDN
+        run: sls deploy

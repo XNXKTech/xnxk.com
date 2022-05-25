@@ -7,53 +7,133 @@ on:
   workflow_dispatch:
 
 jobs:
-  cloudbase:
-    name: Deploy to Tencent Cloudbase
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://xnxk.net
     timeout-minutes: 10
-    strategy:
-      matrix:
-        node: [ '16' ]
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2.4.0
+      - name: Split string
+        uses: jungwinter/split@v2
+        id: split
+        with:
+          separator: '/'
+          msg: ${{ github.ref }}
+
+      - name: Checkout ${{ steps.split.outputs._2 }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.split.outputs._2 }}
 
       - name: Setup Node ${{ matrix.node }}
-        uses: actions/setup-node@v2.5.1
+        uses: actions/setup-node@v3.2.0
         with:
           node-version: ${{ matrix.node }}
+          cache: npm
 
-      - name: Get yarn cache
-        id: yarn-cache
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Setup yarn
+        run: npm install -g yarn
 
-      - uses: actions/cache@v2.1.7
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v3.2.0
         with:
-          path: ${{ steps.yarn-cache.outputs.dir }}
+          node-version: ${{ matrix.node }}
+          cache: yarn
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        id: node-modules-cache
+        with:
+          path: |
+            node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-yarn
 
-      - run: rm -f .yarnclean
-      - name: Install dependencies
+      - name: Install package.json dependencies with Yarn
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
           HUSKY_SKIP_INSTALL: true
 
-      - name: Cache dist
-        id: cache-dist
-        uses: actions/cache@v2.1.7
+      - name: Cache build
+        uses: actions/cache@v3
+        id: build-cache
         with:
-          path: ./dist
-          key: BUILD-ID-${{ github.run_id }}
+          path: |
+            build
+          key: ${{ runner.os }}-build-${{ github.sha }}
 
       - name: Build
-        if: steps.cache-dist.outputs.cache-hit != 'true'
+        if: steps.build-cache.outputs.cache-hit != 'true'
+        run: yarn build
+
+  cloudbase:
+    name: Deploy to Tencent Cloudbase
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    environment:
+      name: Production
+      url: https://xnxk.net
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        node: [ '16' ]
+    steps:
+      - name: Split string
+        uses: jungwinter/split@v2
+        id: split
+        with:
+          separator: '/'
+          msg: ${{ github.ref }}
+
+      - name: Checkout ${{ steps.split.outputs._2 }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.split.outputs._2 }}
+
+      - name: Setup Node ${{ matrix.node }}
+        uses: actions/setup-node@v3.2.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Setup yarn
+        run: npm install -g yarn
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v3.2.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+
+      - uses: actions/cache@v3
+        id: node-modules-cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn
+
+      - name: Install package.json dependencies with Yarn
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+          HUSKY_SKIP_INSTALL: true
+
+      - name: Cache build
+        uses: actions/cache@v3
+        id: build-cache
+        with:
+          path: |
+            build
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+      - name: Build
+        if: steps.build-cache.outputs.cache-hit != 'true'
         run: yarn build
 
       - name: Deploy static to Tencent CloudBase
@@ -64,20 +144,52 @@ jobs:
           secretKey: ${{ secrets.TCB_SECRET_KEY }}
           envId: ${{ secrets.ENV_ID }}
 
-      - uses: octokit/request-action@v2.x
-        id: get_release_notes
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+  cdn:
+    runs-on: ubuntu-latest
+    needs:
+      - cloudbase
+
+    name: Refresh CDN
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Setup Serverless
+        uses: teakowa/setup-serverless@v2
         with:
-          route: GET /repos/{owner}/{repo}/releases/tags/{tag}
-          owner: ${{ inputs.owner }}
-          repo: ${{ inputs.repo }}
-          tag: ${{ inputs.version }}
+          provider: tencent
+        env:
+          TENCENT_APPID: ${{ secrets.TENCENTCLOUD_APP_ID }}
+          TENCENT_SECRET_ID: ${{ secrets.TENCENTCLOUD_SLS_SECRET_ID }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENTCLOUD_SLS_SECRET_KEY}}
+          SERVERLESS_PLATFORM_VENDOR: tencent
+
+      - name: Refresh CDN
+        run: sls deploy
+
+  notification:
+    name: Deploy notification
+    runs-on: ubuntu-latest
+    needs:
+      - cdn
+    steps:
+      - name: Split Version or Branch
+        uses: jungwinter/split@v2
+        id: split
+        with:
+          separator: '/'
+          msg: ${{ github.ref }}
+
+      - name: Checkout ${{ steps.split.outputs._2 }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.split.outputs._2 }}
 
       - name: Lark Notification
         run: |
           curl '${{ secrets.SERVICE_UPDATES_ECHO_LARK_BOT_HOOK }}' \
              -H 'Content-Type: application/json' \
-             -d '
+              -d '
               {
                 "msg_type": "interactive",
                 "card": {
@@ -97,14 +209,14 @@ jobs:
                       {
                         "is_short": true,
                         "text": {
-                          "content": "**👤  提交者：**\n${{ github.actor }}",
+                          "content": "**🏷️  Version：**\n${{ steps.split.outputs._2 }}",
                           "tag": "lark_md"
                         }
                       },
                       {
                         "is_short": true,
                         "text": {
-                          "content": "**🚧  Stage：**\n[production](https://github.com/${{ github.repository }}/pull/${{ github.event.number }})",
+                          "content": "**🚧  Stage：**\n[Production](https://github.com/${{ github.repository }}/deployments/activity_log?environment=Production)",
                           "tag": "lark_md"
                         }
                       }
@@ -135,32 +247,9 @@ jobs:
                   },
                   {
                     "tag": "markdown",
-                    "content": "**服务开始滚动更新，预计几分钟后生效。**\n\n本次变更内容如下：\n\n${{ fromJson(steps.get_release_notes.outputs.data).body }}"
+                    "content": "**版本已推送至 TCB、CDN 节点，CDN 节点开始滚动更新，预计几分钟后生效。**\n\n"
                   }
                 ]
                }
               }'
 
-
-  cdn:
-    runs-on: ubuntu-latest
-    needs:
-      - cloudbase
-
-    name: Refresh CDN
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2.4.0
-
-      - name: Setup Serverless
-        uses: teakowa/setup-serverless@v2
-        with:
-          provider: tencent
-        env:
-          TENCENT_APPID: ${{ secrets.TENCENTCLOUD_APP_ID }}
-          TENCENT_SECRET_ID: ${{ secrets.TENCENTCLOUD_SLS_SECRET_ID }}
-          TENCENT_SECRET_KEY: ${{ secrets.TENCENTCLOUD_SLS_SECRET_KEY}}
-          SERVERLESS_PLATFORM_VENDOR: tencent
-
-      - name: Refresh CDN
-        run: sls deploy

@@ -1,0 +1,17 @@
+.idea/
+.env*
+.git*
+.all-contributorsrc
+.dockerignore
+.editorconfig
+.eslintignore
+.eslintrc
+.prettierrc
+.releaserc.json
+cloudbaserc.json
+CODEOWNERS
+README.md
+/build/
+/config/
+/dist/
+node_modules/

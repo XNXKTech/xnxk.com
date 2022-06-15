@@ -9,7 +9,18 @@
     <div class="container-content">
       <div class="container-content-body">
         <div class="home-header-content">
-          <img class='home-header-logo' :src="LogoImage" />
+          <h1>虚拟星空科技</h1>
+          <div class="home-header-links">
+            <a href="https://demo.xnxktech.net" target="_blank">
+              词曲售卖
+            </a>
+            <a href="https://demo.xnxktech.net" target="_blank">
+              电子数据存证
+            </a>
+            <a href="https://demo.xnxktech.net" target="_blank">
+              数字版权管理
+            </a>
+          </div>
           <div class="home-header-title">
             <img :src="MusicCultureIndustrySolutionsImage">
             <div class="home-header-description">
@@ -19,32 +30,40 @@
             </div>
           </div>
         </div>
-        <div class="home-slogan-container">
-          <div class="home-slogan-item">
-            <div class="home-slogan-title">
-              <span>{{ $t('home.connectionValue') }}</span>
+        <div class="information-container">
+          <div class="application-lists">
+            <div class="application-item">
+              <div class="application-item-logo">
+                <img :src="ApplicationDemoCloudLogoImage">
+              </div>
+              <div class="application-item-description">
+                {{ $t('home.application.demoCloud.desc') }}
+              </div>
+              <a href="https://demo.xnxktech.net" target="_blank" class="application-item-button">
+                {{ $t('home.aboutUsContent') }}
+              </a>
             </div>
-            <div class="home-slogan-description">
-              <p>{{ $t('home.understandPeopleIsNeeds') }}</p>
-              <p>{{ $t('home.andThenConnectTheValueOfTheCustomer') }}</p>
+            <div class="application-item">
+              <div class="application-item-logo">
+                <img :src="ApplicationEvidenceLogoImage">
+              </div>
+              <div class="application-item-description">
+                {{ $t('home.application.evidence.desc') }}
+              </div>
+              <a href="https://e.xnxk.net" target="_blank" class="application-item-button">
+                {{ $t('home.aboutUsContent') }}
+              </a>
             </div>
-          </div>
-          <div class="home-slogan-item">
-            <div class="home-slogan-title">
-              <span>{{ $t('home.continuousInnovate') }}</span>
-            </div>
-            <div class="home-slogan-description">
-              <p>{{ $t('home.sellInnovateNotProducts') }}</p>
-              <p>{{ $t('home.createChangeYourself') }}</p>
-            </div>
-          </div>
-          <div class="home-slogan-item">
-            <div class="home-slogan-title">
-              <span>{{ $t('home.achieveCustomers') }}</span>
-            </div>
-            <div class="home-slogan-description">
-              <p>{{ $t('home.weWantToHelpOurCustomersBecomeWhatTheyWant') }}</p>
-              <p>{{ $t('home.giveCustomersEnoughMotivationToImproveTheTeamValue') }}</p>
+            <div class="application-item">
+              <div class="application-item-logo">
+                <img :src="ApplicationDrmLogoImage">
+              </div>
+              <div class="application-item-description">
+                {{ $t('home.application.drm.desc') }}
+              </div>
+              <a href="https://drm-web-test.virtualstarsky.com" target="_blank" class="application-item-button">
+                {{ $t('home.aboutUsContent') }}
+              </a>
             </div>
           </div>
         </div>
@@ -67,52 +86,6 @@
             <div class="image-square-1"></div>
             <div class="image-square-2"></div>
             <div class="image-square-3"></div>
-          </div>
-        </div>
-        <div class="information-container">
-          <div class="information-header">
-            <div class="information-icon">
-              <img :src="InformationBottomImage">
-            </div>
-            <div class="information-header-title">
-              <h1>{{ $t('home.productIntroduction') }}</h1>
-              <h3>{{ $t('home.productIntroductionSubtitle') }}</h3>
-            </div>
-          </div>
-          <div class="application-lists">
-            <div class="application-item">
-              <div class="application-item-logo">
-                <img :src="ApplicationDemoCloudLogoImage">
-              </div>
-              <div class="application-item-description">
-                {{ $t('home.application.demoCloud.desc') }}
-              </div>
-              <div class="application-item-button">
-                {{ $t('home.aboutUsContent') }}
-              </div>
-            </div>
-            <div class="application-item">
-              <div class="application-item-logo">
-                <img :src="ApplicationCloudPushLogoImage">
-              </div>
-              <div class="application-item-description">
-                {{ $t('home.application.cloudPush.desc') }}
-              </div>
-              <div class="application-item-button">
-                {{ $t('home.aboutUsContent') }}
-              </div>
-            </div>
-            <div class="application-item">
-              <div class="application-item-logo">
-                <img :src="ApplicationDrmLogoImage">
-              </div>
-              <div class="application-item-description">
-                {{ $t('home.application.drm.desc') }}
-              </div>
-              <div class="application-item-button">
-                {{ $t('home.aboutUsContent') }}
-              </div>
-            </div>
           </div>
         </div>
         <div class="information-container">
@@ -157,7 +130,7 @@
       </div>
       <div class="container-footer-content">
         <div class="container-footer-left">
-          <img class='container-footer-logo' :src="LogoImage" />
+          <h1>虚拟星空科技</h1>
           <p>成都虚拟星空科技有限公司 版权所有</p>
           <p>Copyright © 2021-present XNXK All Rights Reserved. 蜀 ICP 备 2021030612 号</p>
         </div>
@@ -209,11 +182,27 @@ import HeaderBackgroundRightImage from '@/assets/images/header-background-right.
 import FooterBackgroundLeftImage from '@/assets/images/footer-background-left.svg';
 import FooterBackgroundRightImage from '@/assets/images/footer-background-right.svg';
 import ApplicationDemoCloudLogoImage from '@/assets/images/application-demo-cloud-logo.png';
-import ApplicationCloudPushLogoImage from '@/assets/images/application-cloud-push-logo.png';
+import ApplicationEvidenceLogoImage from '@/assets/images/application-evidence-logo.png';
 import ApplicationDrmLogoImage from '@/assets/images/application-drm-logo.png';
 </script>
 
 <style scoped lang='less'>
+.home-header-links {
+  position: absolute;
+  top: 0;
+  right: 0;
+   a {
+     color: #000;
+     margin-left: 20px;
+     font-size: 18px;
+     font-weight: bold;
+
+     &:hover{
+       color: #1989FA;
+     }
+   }
+}
+
 .container {
   position: relative;
 }
@@ -265,6 +254,12 @@ import ApplicationDrmLogoImage from '@/assets/images/application-drm-logo.png';
 }
 
 .home-header-content {
+  position: relative;
+  h1 {
+    color: #1989FA;
+    font-size: 45px;
+    margin-bottom: 100px;
+  }
   .home-header-title {
     margin-bottom: 140px;
     color: #1989FA;
@@ -464,6 +459,10 @@ import ApplicationDrmLogoImage from '@/assets/images/application-drm-logo.png';
     display: flex;
   }
   .container-footer-left {
+    h1 {
+      color: #1989FA;
+      font-size: 35px;
+    }
     flex: 1;
     p {
       color: #1989FA;

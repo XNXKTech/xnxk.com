@@ -18,7 +18,7 @@
               电子数据存证
             </a>
             <a href="https://drm-web-test.virtualstarsky.com" target="_blank">
-              数字版权管理
+              DRM 数字版权管理
             </a>
           </div>
           <div class="home-header-title">

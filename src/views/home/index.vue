@@ -132,7 +132,7 @@
         <div class="container-footer-left">
           <h1>虚拟星空科技</h1>
           <p>成都虚拟星空科技有限公司 版权所有</p>
-          <p>Copyright © 2021-present XNXK All Rights Reserved. 蜀 ICP 备 2021030612 号</p>
+          <p>Copyright © 2021-present XNXK All Rights Reserved. <a href="https://beian.miit.gov.cn" target="_blank">蜀 ICP 备 2021030612 号</a></p>
         </div>
         <div class="container-footer-right">
           <div class="container-footer-link-lists">

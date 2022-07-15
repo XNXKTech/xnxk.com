@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.4.0](https://github.com/XNXKTech/xnxk.com/compare/v1.3.0...v1.4.0) (2022-07-15)
+
+
+### Features
+
+* 增加微信小程序验证文件 ([c43ea42](https://github.com/XNXKTech/xnxk.com/commit/c43ea420104d42266d1a0794c2d1650ea8dec605))
+
 # [1.3.0](https://github.com/XNXKTech/xnxk.com/compare/v1.2.0...v1.3.0) (2022-07-06)
 
 

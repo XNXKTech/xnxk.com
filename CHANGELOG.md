@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+# [1.5.0](https://github.com/XNXKTech/xnxk.com/compare/v1.4.0...v1.5.0) (2022-08-15)
+
+
+### Features
+
+* 增加最新信息 ([87627aa](https://github.com/XNXKTech/xnxk.com/commit/87627aa247da78247fbc0a77f73bd504cc206e5c))
+
 # [1.4.0](https://github.com/XNXKTech/xnxk.com/compare/v1.3.0...v1.4.0) (2022-07-15)
 
 

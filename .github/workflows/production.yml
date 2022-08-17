@@ -9,64 +9,10 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Split string
-        uses: jungwinter/split@v2
-        id: split
-        with:
-          separator: '/'
-          msg: ${{ github.ref }}
-
-      - name: Checkout ${{ steps.split.outputs._2 }}
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ steps.split.outputs._2 }}
-
-      - name: Setup Node ${{ matrix.node }}
-        uses: actions/setup-node@v3.4.1
-        with:
-          node-version: ${{ matrix.node }}
-          cache: npm
-
-      - name: Setup yarn
-        run: npm install -g yarn
-
-      - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v3.4.1
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
-
-      - name: Cache dependencies
-        uses: actions/cache@v3.0.7
-        id: node-modules-cache
-        with:
-          path: |
-            node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn
-
-      - name: Install package.json dependencies with Yarn
-        if: steps.node-modules-cache.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
-        env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-          HUSKY_SKIP_INSTALL: true
-
-      - name: Cache build
-        uses: actions/cache@v3.0.7
-        id: build-cache
-        with:
-          path: |
-            dist
-          key: ${{ runner.os }}-dist-${{ github.sha }}
-
-      - name: Build
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: yarn build
+    uses: XNXKTech/workflows/.github/workflows/node-build.yml@main
+    with:
+      environment: Production
+      build_dir: dist
 
   cloudbase:
     name: TCB

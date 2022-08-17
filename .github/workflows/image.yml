@@ -15,73 +15,11 @@ on:
 jobs:
   registry:
     name: Build & Push
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Split string
-        uses: jungwinter/split@v2
-        id: split
-        with:
-          separator: '/'
-          msg: ${{ github.ref }}
-
-      - name: Checkout ${{ steps.split.outputs._2 }}
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ steps.split.outputs._2 }}
-
-      - name: Setup repo name to lowercase
-        id: reponame
-        uses: ASzc/change-string-case-action@v2
-        with:
-          string: ${{ github.repository }}
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: |
-            xnxktech.tencentcloudcr.com/${{ steps.reponame.outputs.lowercase }}
-          tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=tag
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3.0.7
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Login to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
-        with:
-          registry: xnxktech.tencentcloudcr.com
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: XNXKTech/workflows/.github/workflows/docker-build.yml@main
+    with:
+      registry: 'xnxktech.tencentcloudcr.com'
+    secrets:
+      USERNAME: ${{ secrets.REGISTRY_USER }}
+      PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}

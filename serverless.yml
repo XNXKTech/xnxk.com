@@ -5,7 +5,7 @@ name: cdn
 
 inputs:
   area: mainland
-  domain: xnxk.net
+  domain: www.xnxk.com
   origin:
     origins:
       - xnxk-6g7yy2mi9f17f856-1308277749.tcloudbaseapp.com
@@ -14,4 +14,4 @@ inputs:
   onlyRefresh: true
   refreshCdn:
     urls:
-      - https://xnxk.net/
+      - https://www.xnxk.com/

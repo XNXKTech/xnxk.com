@@ -1,0 +1,52 @@
+name: PR Review
+
+on: # run any PRs and build branches commit
+  pull_request:
+    paths:
+      - '.github/workflows/pr-review.yml'
+      - '.k8s/**'
+      - 'src/**'
+      - 'static/**'
+      - '.eslint*'
+      - '*.html'
+      - '**.json'
+      - '**.js'
+      - 'serverless.yml'
+
+jobs:
+  build:
+    name: Build & Push
+    uses: XNXKTech/workflows/.github/workflows/docker-build.yml@main
+    with:
+      registry: 'xnxktech.tencentcloudcr.com'
+      runs-on: "['self-hosted']"
+      build-args: |
+        CI=true
+        X_ENV=test
+    secrets:
+      TCR_USERNAME: ${{ secrets.REGISTRY_USER }}
+      TCR_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  deploy:
+    name: Deploy
+    needs: build
+    uses: XNXKTech/workflows/.github/workflows/pr_review_k8s.yml@main
+    with:
+      deployment: .k8s/preview.yaml
+      environment_url: https://deploy-preview-${{ github.event.number }}-xnxk-web.virtualstarry.com
+    secrets:
+      K8S_CONFIG: ${{ secrets.K8S_CONFIG_DEV }}
+      IAC_TOKEN: ${{ secrets.IAC_TOKEN }}
+
+  notification:
+    name: Deploy notification
+    needs:
+      - deploy
+    uses: XNXKTech/workflows/.github/workflows/lark-notification.yml@main
+    with:
+      runs-on: "['self-hosted']"
+      stage: PR Review
+    secrets:
+      LARK_WEBHOOK_URL: ${{ secrets.SERVICE_UPDATES_ECHO_LARK_BOT_HOOK }}

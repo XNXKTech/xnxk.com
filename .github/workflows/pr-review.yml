@@ -19,7 +19,6 @@ jobs:
     uses: XNXKTech/workflows/.github/workflows/docker-build.yml@main
     with:
       registry: 'xnxktech.tencentcloudcr.com'
-      runs-on: "['self-hosted']"
       build-args: |
         CI=true
         X_ENV=test
@@ -46,7 +45,6 @@ jobs:
       - deploy
     uses: XNXKTech/workflows/.github/workflows/lark-notification.yml@main
     with:
-      runs-on: "['self-hosted']"
       stage: PR Review
     secrets:
       LARK_WEBHOOK_URL: ${{ secrets.SERVICE_UPDATES_ECHO_LARK_BOT_HOOK }}

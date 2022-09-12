@@ -13,8 +13,6 @@ jobs:
   release:
     name: Release
     uses: XNXKTech/workflows/.github/workflows/release.yml@main
-    with:
-      runs-on: "['self-hosted']"
     secrets:
       CI_PAT: ${{ secrets.CI_PAT }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

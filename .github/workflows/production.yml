@@ -37,7 +37,7 @@ jobs:
     name: Refresh CDN
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v3.5.3
 
       - name: Setup Serverless
         uses: teakowa/setup-serverless@v2

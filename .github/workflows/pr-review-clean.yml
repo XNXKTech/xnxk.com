@@ -1,0 +1,14 @@
+name: PR Review
+
+on: # run any PRs and build branches commit
+  pull_request:
+    types:
+      - "closed"
+
+jobs:
+  cleanup:
+    name: Clean
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    uses: XNXKTech/workflows/.github/workflows/pr_review_k8s_clean.yml@main
+    secrets:
+      K8S_CONFIG: ${{ secrets.K8S_CONFIG_DEV }}

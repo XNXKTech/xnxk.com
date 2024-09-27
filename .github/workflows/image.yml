@@ -18,6 +18,9 @@ jobs:
     uses: XNXKTech/workflows/.github/workflows/docker-build.yml@main
     with:
       registry: 'xnxktech.tencentcloudcr.com'
+      build-args: |
+        CI=true
+        X_ENV=production
     secrets:
       USERNAME: ${{ secrets.REGISTRY_USER }}
       PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}

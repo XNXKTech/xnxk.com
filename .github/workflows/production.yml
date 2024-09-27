@@ -11,28 +11,26 @@ jobs:
     name: Build
     uses: XNXKTech/workflows/.github/workflows/node-build.yml@main
     with:
-      environment: Production
-      build_dir: dist
-
-  cloudbase:
-    name: TCB
-    needs:
-      - build
-    uses: XNXKTech/workflows/.github/workflows/cloudbase.yml@main
-    with:
       runs-on: "['self-hosted']"
       environment: Production
-      environment_url: https://xnxkt.net
-      build_dir: dist
+      eslint: true
+
+  depoly:
+    name: Kubernetes
+    needs:
+      - build
+    uses: XNXKTech/workflows/.github/workflows/deploy-k8s.yml@main
+    with:
+      environment: Production
+      environment_url: https://www.xnxk.com
     secrets:
-      SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
-      SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
-      ENV_ID: ${{ secrets.ENV_ID }}
+      K8S_CONFIG: ${{ secrets.K8S_CONFIG }}
+      IAC_TOKEN: ${{ secrets.IAC_TOKEN }}
 
   cdn:
     runs-on: ubuntu-latest
     needs:
-      - cloudbase
+      - deploy
 
     name: Refresh CDN
     steps:
@@ -53,11 +51,12 @@ jobs:
         run: sls deploy
 
   notification:
-    name: Lark
+    name: Deploy notification
     needs:
       - cdn
     uses: XNXKTech/workflows/.github/workflows/lark-notification.yml@main
     with:
+      runs-on: "['self-hosted']"
       stage: Production
     secrets:
       LARK_WEBHOOK_URL: ${{ secrets.SERVICE_UPDATES_ECHO_LARK_BOT_HOOK }}
